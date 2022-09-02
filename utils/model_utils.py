@@ -41,7 +41,7 @@ def loss_edges(y_pred_edges, y_edges, edge_cw):
     """
     # Edge loss
     y = F.log_softmax(y_pred_edges, dim=3)  # B x V x V x voc_edges
-    y = y.permute(0, 3, 1, 2)  # B x voc_edges x V x V
+    y = y.permute(0, 3, 1, 2).contiguous()  # B x voc_edges x V x V
     loss_edges = nn.NLLLoss(edge_cw)(y, y_edges)
     return loss_edges
 
@@ -118,6 +118,8 @@ def beamsearch_tour_nodes_shortest(y_pred_edges, x_edges_values, beam_size, batc
         # Consider the second dimension only
         y = y[:, :, :, 1]  # B x V x V
         y[y == 0] = -1e-20  # Set 0s (i.e. log(1)s) to very small negative number
+    elif probs_type == 'p':
+        y = y_pred_edges
     # Perform beamsearch
     beamsearch = Beamsearch(beam_size, batch_size, num_nodes, dtypeFloat, dtypeLong, probs_type, random_start)
     trans_probs = y.gather(1, beamsearch.get_current_state())

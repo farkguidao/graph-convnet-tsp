@@ -26,7 +26,7 @@
   "val_every": 5,
   "test_every": 10,
 
-  "batch_size": 20,
+  "batch_size": 5,
   "batches_per_epoch": 500,
   "accumulation_steps": 1,
 

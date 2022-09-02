@@ -10,6 +10,7 @@ class Beamsearch(object):
         For TSP: https://github.com/alexnowakvila/QAP_pt/blob/master/src/tsp/beam_search.py
     """
 
+
     def __init__(self, beam_size, batch_size, num_nodes,
                  dtypeFloat=torch.FloatTensor, dtypeLong=torch.LongTensor, 
                  probs_type='raw', random_start=False):
@@ -71,6 +72,8 @@ class Beamsearch(object):
                 beam_lk = trans_probs * self.scores.unsqueeze(2).expand_as(trans_probs)
             elif self.probs_type == 'logits':
                 beam_lk = trans_probs + self.scores.unsqueeze(2).expand_as(trans_probs)
+            elif self.probs_type == 'p':
+                beam_lk = trans_probs + self.scores.unsqueeze(2).expand_as(trans_probs)
         else:
             beam_lk = trans_probs
             # Only use the starting nodes from the beam
@@ -78,6 +81,8 @@ class Beamsearch(object):
                 beam_lk[:, 1:] = torch.zeros(beam_lk[:, 1:].size()).type(self.dtypeFloat)
             elif self.probs_type == 'logits':
                 beam_lk[:, 1:] = -1e20 * torch.ones(beam_lk[:, 1:].size()).type(self.dtypeFloat)
+            elif self.probs_type == 'p':
+                beam_lk[:, 1:] = torch.zeros(beam_lk[:, 1:].size()).type(self.dtypeFloat)
         # Multiply by mask
         beam_lk = beam_lk * self.mask
         beam_lk = beam_lk.view(self.batch_size, -1)  # (batch_size, beam_size * num_nodes)
@@ -86,7 +91,7 @@ class Beamsearch(object):
         # Update scores
         self.scores = bestScores
         # Update backpointers
-        prev_k = bestScoresId / self.num_nodes
+        prev_k = bestScoresId // self.num_nodes
         self.prev_Ks.append(prev_k)
         # Update outputs
         new_nodes = bestScoresId - prev_k * self.num_nodes

@@ -68,6 +68,18 @@ def mean_tour_len_edges(x_edges_values, y_pred_edges):
     mean_tour_len = tour_lens.sum().to(dtype=torch.float).item() / tour_lens.numel()
     return mean_tour_len
 
+def batch_tour_len_nodes(x_edges_values, bs_nodes):
+    # bs,V,V
+    # bs,V
+    # bs_nodes 第一个总是0
+    bs = x_edges_values.shape[0]
+    i, j= bs_nodes, torch.cat([bs_nodes[:,1:],
+                               torch.zeros((bs,1),dtype=torch.long,device=bs_nodes.device)],
+                              dim=-1)
+    edges = x_edges_values[torch.arange(bs).unsqueeze(1),i,j] #bs,V
+    tour = edges.sum(-1) #bs
+    return tour
+
 
 def mean_tour_len_nodes(x_edges_values, bs_nodes):
     """
